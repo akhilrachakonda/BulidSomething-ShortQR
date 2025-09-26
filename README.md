@@ -153,21 +153,3 @@ For a deeper narrative, see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), whic
   ```
 
 ---
-
-## 8. Deliverables Checklist
-- [x] Source code & Kubernetes manifests (this repository).
-- [ ] Video walkthrough (5–10 minutes). Use `docs/DEMO_SCRIPT.md` as your outline; record terminal + browser, show service logs, and highlight YAML key sections.
-- [ ] Architecture & security write-up. Expand or cite `docs/ARCHITECTURE.md` and `docs/SECURITY.md` in your submission.
-- [ ] Business & security discussion. Summarize benefits/challenges from Section 4 in your written report or presentation.
-
-When you publish, include the final repository link in your assignment submission along with the video URL.
-
----
-
-## 9. Support & Questions
-If you are asked about the system:
-- Emphasize the rationale for splitting QR generation from URL CRUD (workload isolation, scaling, failure domains).
-- Explain how HPAs, PVCs, and ingress routing satisfy the course criteria for cloud provisioning and deployment.
-- Call out acknowledged gaps (trusted TLS, full RBAC/network policies) and how you would address them in production.
-
-Happy hacking!
