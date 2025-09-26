@@ -4,20 +4,41 @@ import "./App.css";
 
 type Link = { id:number; slug:string; url:string; clicks:number; createdAt?:string };
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8080";
-const api = axios.create({ baseURL: API_BASE });
+const RAW_API_BASE = (import.meta.env.VITE_API_BASE || '').trim();
+const API_BASE = (() => {
+  if (!RAW_API_BASE) return '';
+  try {
+    const candidate = new URL(RAW_API_BASE, window.location.origin);
+    if (window.location.protocol === 'https:' && candidate.protocol === 'http:') {
+      return `${window.location.origin}${candidate.pathname === '/' ? '' : candidate.pathname}`;
+    }
+    return candidate.toString();
+  } catch {
+    return RAW_API_BASE;
+  }
+})();
+const api = axios.create({ baseURL: API_BASE || undefined });
+
+function enrichLink(link: Link) {
+  const origin = window.location.origin;
+  const shortUrl = `${origin}/r/${link.slug}`;
+  const qrCodeUrl = `${API_BASE}/api/qr?slug=${link.slug}`;
+  return { ...link, shortUrl, qrCodeUrl };
+}
 
 export default function App() {
   const [url, setUrl] = useState("");
-  const [links, setLinks] = useState<Link[]>([]);
+  const [links, setLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [activeLink, setActiveLink] = useState<any | null>(null);
+  const [view, setView] = useState<"form" | "qr">("form");
 
   async function loadLinks() {
     try {
       const res = await api.get("/api/links");
-      setLinks(res.data.items ?? []);
+      setLinks((res.data.items ?? []).map(enrichLink));
     } catch (e:any) {
       setError(e?.response?.data?.detail || e?.message || "Failed to load links");
     }
@@ -31,9 +52,11 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      await api.post("/api/links", { url });
+      const res = await api.post("/api/links", { url });
       setUrl("");
       await loadLinks();
+      setActiveLink(enrichLink(res.data));
+      setView("qr");
     } catch (e:any) {
       setError(e?.response?.data?.detail || e?.message || "Failed to create link");
     } finally {
@@ -51,11 +74,23 @@ export default function App() {
   }
 
   function copyToClipboard(slug: string) {
-    const shortUrl = `${API_BASE}/r/${slug}`;
+    const shortUrl = `${window.location.origin}/r/${slug}`;
     navigator.clipboard.writeText(shortUrl).then(() => {
       setCopiedSlug(slug);
       setTimeout(() => setCopiedSlug(null), 2000); // Reset after 2 seconds
     });
+  }
+
+  if (view === "qr" && activeLink) {
+    return (
+      <div className="app-root qr-view">
+        <div className="container">
+          <img src={activeLink.qrCodeUrl} alt={`QR code for ${activeLink.slug}`} className="qr-code-full" />
+          <p><a href={activeLink.shortUrl} target="_blank" rel="noopener noreferrer">{activeLink.shortUrl}</a></p>
+          <button onClick={() => setView("form")} className="back-button">Back</button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -93,8 +128,8 @@ export default function App() {
                 <div className="link-info">
                   <p className="original-url" title={link.url}>{link.url}</p>
                   <div className="short-url-container">
-                    <a href={`${API_BASE}/r/${link.slug}`} target="_blank" rel="noopener noreferrer" className="short-url">
-                      {`${API_BASE.replace(/https?:\/\//, '')}/r/${link.slug}`}
+                    <a href={link.shortUrl} target="_blank" rel="noopener noreferrer" className="short-url">
+                      {link.shortUrl.replace(/https?:\/\//, '')}
                     </a>
                     <button onClick={() => copyToClipboard(link.slug)} className="copy-button">
                       {copiedSlug === link.slug ? "Copied!" : "Copy"}
@@ -106,7 +141,7 @@ export default function App() {
                   </div>
                 </div>
                 <div className="qr-code">
-                  <img src={`${API_BASE}/api/links/${link.slug}/qr`} alt={`QR code for ${link.slug}`} />
+                  <img src={link.qrCodeUrl} alt={`QR code for ${link.slug}`} />
                 </div>
               </div>
             ))}

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shortyqr-config
+  namespace: shorty
+data:
+  PUBLIC_BASE_URL: http://shorty.local
+  ALLOWED_ORIGINS: http://shorty.local,http://shorty.local:8080,http://localhost:3000

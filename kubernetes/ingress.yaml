@@ -1,0 +1,49 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shortyqr-ingress
+  namespace: shorty
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: shorty.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
+      - path: /api/qr
+        pathType: Prefix
+        backend:
+          service:
+            name: qr-service
+            port:
+              number: 8080
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: url-service
+            port:
+              number: 8080
+      - path: /qr
+        pathType: Prefix
+        backend:
+          service:
+            name: qr-service
+            port:
+              number: 8080
+      - path: /r
+        pathType: Prefix
+        backend:
+          service:
+            name: url-service
+            port:
+              number: 8080

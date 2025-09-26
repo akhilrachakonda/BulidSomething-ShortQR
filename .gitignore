@@ -1,3 +1,21 @@
+# OS / editor noise
 .DS_Store
+
+# Python virtualenvs
 .venv/
 backend/.venv/
+
+# Python artifacts
+**/__pycache__/
+*.py[cod]
+
+# Local SQLite files for dev mode
+backend/url-service/data/*.db
+
+# Frontend build cache
+frontend/node_modules/
+frontend/dist/
+
+# Local-only manifests and logs
+kubernetes/postgres-secret.yaml
+ngrok.log

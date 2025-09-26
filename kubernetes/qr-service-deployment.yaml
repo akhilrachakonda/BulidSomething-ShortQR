@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qr-service
+  namespace: shorty
+  labels:
+    app: qr-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: qr-service
+  template:
+    metadata:
+      labels:
+        app: qr-service
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: qr-service
+        image: akhilrachakonda2004347/shortyqr-qr-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: shortyqr-config
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
